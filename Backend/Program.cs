@@ -1,5 +1,8 @@
+using Backend.DTOs;
 using Backend.Models;
 using Backend.Services;
+using Backend.Validators;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,9 +23,10 @@ builder.Services.AddKeyedScoped<IRandomService, RandomService>("randomScoped");
 // Transient
 builder.Services.AddKeyedTransient<IRandomService, RandomService>("randonTransient");
 
-
 // inyectamos nuestro servicio jsonplaceholder
 builder.Services.AddScoped<IPostsService, PostsService>();
+// Inyectamos servicio cerveza
+builder.Services.AddScoped<IBeerService, BeerService>();
 
 // y luego inyectamos el httpclient, interface que lo va a usar, luego la implementacion
 builder.Services.AddHttpClient<IPostsService, PostsService>(c =>
@@ -32,13 +36,20 @@ builder.Services.AddHttpClient<IPostsService, PostsService>(c =>
 );
 
 
-// Entity Framework -> inyectamos el contexto 
+// Entity Framework -> git sinyectamos el contexto 
 builder.Services.AddDbContext<StoreContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("StoreConnection")
 );
 
 });
+
+// validators
+builder.Services.AddScoped<IValidator<BeerInsertDto>, BeerInsertValidator>();
+builder.Services.AddScoped<IValidator<BeerUpdateDto>, BeerUpdateValidator>();
+
+
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
