@@ -29,30 +29,14 @@ namespace Backend.Controllers
 
 
         [HttpGet]
-        public async Task<IEnumerable<BeerDto>> Get() => await _context.Beers.Select(b => new BeerDto
-        {
-            Id = b.BeerId,
-            Name = b.Name,
-            Alcohol = b.Alcohol,
-            BrandId = b.BrandID
-        }).ToListAsync();
+        public async Task<IEnumerable<BeerDto>> Get() => await _beerService.Get();
 
         [HttpGet("{id}")]
         public async Task<ActionResult<BeerDto>> GetById(int id)
         {
-            var beer = await _context.Beers.FindAsync(id);
+            var beerDto = await _beerService.GetById(id);
 
-            if (beer == null) { return NotFound(); }
-
-            var beerDto = new BeerDto
-            {
-                Id = beer.BeerId,
-                Name = beer.Name,
-                Alcohol = beer.Alcohol,
-                BrandId = beer.BrandID
-            };
-
-            return Ok(beerDto);
+            return beerDto == null ? NotFound() : Ok(beerDto);
         }
 
         [HttpPost]
@@ -65,27 +49,9 @@ namespace Backend.Controllers
                 return BadRequest(validationResult.Errors);
             }
 
-            var beer = new Beer()
-            {
-                Name = beerInsertDto.Name,
-                BrandID = beerInsertDto.BrandId,
-                Alcohol = beerInsertDto.Alcohol
+            var beerDto = await _beerService.Add(beerInsertDto);
 
-            };
-
-            await _context.Beers.AddAsync(beer);
-            // aca se guardan los datos en la bd
-            await _context.SaveChangesAsync();
-
-            var beerDto = new BeerDto
-            {
-                Id = beer.BeerId,
-                Name = beer.Name,
-                Alcohol = beer.Alcohol,
-                BrandId = beer.BrandID
-            };
-
-            return CreatedAtAction(nameof(GetById), new { id = beer.BeerId }, beerDto);
+            return CreatedAtAction(nameof(GetById), new { id = beerDto.Id }, beerDto);
         }
 
         [HttpPut("{id}")]
@@ -98,24 +64,9 @@ namespace Backend.Controllers
                 return BadRequest(validationResult.Errors);
             }
 
-            var beer = await _context.Beers.FindAsync(id);
+            var beerDto = await _beerService.Update(id, beerUpdateDto);
 
-            if (beer == null) { return NotFound(); }
-
-            beer.Name = beerUpdateDto.Name;
-            beer.Alcohol = beerUpdateDto.Alcohol;
-            beer.BrandID = beerUpdateDto.BrandId;
-            await _context.SaveChangesAsync();
-
-            var beerDto = new BeerDto
-            {
-                Id = beer.BeerId,
-                Name = beer.Name,
-                Alcohol = beer.Alcohol,
-                BrandId = beer.BrandID
-            };
-
-            return Ok(beerDto);
+            return beerDto == null ? NotFound() : Ok(beerDto);
         }
 
 
