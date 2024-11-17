@@ -1,5 +1,6 @@
 using Backend.DTOs;
 using Backend.Models;
+using Backend.Repository;
 using Backend.Services;
 using Backend.Validators;
 using FluentValidation;
@@ -26,7 +27,7 @@ builder.Services.AddKeyedTransient<IRandomService, RandomService>("randonTransie
 // inyectamos nuestro servicio jsonplaceholder
 builder.Services.AddScoped<IPostsService, PostsService>();
 // Inyectamos servicio cerveza
-builder.Services.AddScoped<IBeerService, BeerService>();
+builder.Services.AddKeyedScoped<ICommonService<BeerDto, BeerInsertDto, BeerUpdateDto>, BeerService>("beerService");
 
 // y luego inyectamos el httpclient, interface que lo va a usar, luego la implementacion
 builder.Services.AddHttpClient<IPostsService, PostsService>(c =>
@@ -35,6 +36,8 @@ builder.Services.AddHttpClient<IPostsService, PostsService>(c =>
 }
 );
 
+// Repository
+builder.Services.AddScoped<IRepository<Beer>, BeerRepository>();
 
 // Entity Framework -> git sinyectamos el contexto 
 builder.Services.AddDbContext<StoreContext>(options =>

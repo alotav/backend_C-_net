@@ -1,32 +1,41 @@
 ﻿using Backend.DTOs;
 using Backend.Models;
+using Backend.Repository;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services
 {
-    public class BeerService : IBeerService
+    public class BeerService : ICommonService<BeerDto, BeerInsertDto, BeerUpdateDto>
     {
 
         private StoreContext _context;
+        private IRepository<Beer> _beerRepository;
 
-        public BeerService(StoreContext context) 
+
+        public BeerService(StoreContext context,
+            IRepository<Beer> beerRepository) 
         {
             _context = context;
+            _beerRepository = beerRepository;
         }
         
 
-        public async Task<IEnumerable<BeerDto>> Get() => 
-            await _context.Beers.Select(b => new BeerDto
-        {
-            Id = b.BeerId,
-            Name = b.Name,
-            Alcohol = b.Alcohol,
-            BrandId = b.BrandID
-        }).ToListAsync();
+        public async Task<IEnumerable<BeerDto>> Get()
+            {
+                var beers = await _beerRepository.Get();
+            return beers.Select(b => new BeerDto
+            {
+                Id = b.BeerId,
+                Name = b.Name,
+                BrandId = b.BrandID,
+                Alcohol = b.Alcohol,
+            });
+
+            }
 
         public async Task<BeerDto> GetById(int id)
         {
-            var beer = await _context.Beers.FindAsync(id);
+            var beer = await _beerRepository.GetById(id);
 
             if (beer != null) 
             {
@@ -57,9 +66,9 @@ namespace Backend.Services
 
             };
 
-            await _context.Beers.AddAsync(beer);
+            await _beerRepository.Add(beer);
             // aca se guardan los datos en la bd
-            await _context.SaveChangesAsync();
+            await _beerRepository.Save();
 
             var beerDto = new BeerDto
             {
